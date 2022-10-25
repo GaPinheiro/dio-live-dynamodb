@@ -1,5 +1,7 @@
 # dio-live-dynamodb
-Repositório para o live coding do dia 30/09/2021 sobre o Amazon DynamoDB
+  - Repositório para o desafio de boas práticas com DynamoDB.
+  - Diferente do repositório original, utilizei o terminal do windows para executar os comandos, portanto houve algumas adaptações.
+  - Foi criado um arquivo .json cara cada comando de pesquisa ou de criar tabela.
 
 ### Serviço utilizado
   - Amazon DynamoDB
@@ -11,113 +13,108 @@ Repositório para o live coding do dia 30/09/2021 sobre o Amazon DynamoDB
 - Criar uma tabela
 
 ```
-aws dynamodb create-table \
-    --table-name Music \
-    --attribute-definitions \
-        AttributeName=Artist,AttributeType=S \
-        AttributeName=SongTitle,AttributeType=S \
-    --key-schema \
-        AttributeName=Artist,KeyType=HASH \
-        AttributeName=SongTitle,KeyType=RANGE \
-    --provisioned-throughput \
+aws dynamodb create-table ^
+    --table-name Music ^
+    --attribute-definitions ^
+        AttributeName=Artist,AttributeType=S ^
+        AttributeName=SongTitle,AttributeType=S ^
+    --key-schema ^
+        AttributeName=Artist,KeyType=HASH ^
+        AttributeName=SongTitle,KeyType=RANGE ^
+    --provisioned-throughput ^
         ReadCapacityUnits=10,WriteCapacityUnits=5
 ```
 
 - Inserir um item
 
 ```
-aws dynamodb put-item \
-    --table-name Music \
-    --item file://itemmusic.json \
+aws dynamodb put-item ^
+    --table-name Music ^
+    --item file://itemmusic.json
 ```
 
 - Inserir múltiplos itens
 
 ```
-aws dynamodb batch-write-item \
+aws dynamodb batch-write-item ^
     --request-items file://batchmusic.json
 ```
 
-- Criar um index global secundário baeado no título do álbum
+- Criar um index global secundário baseado no título do álbum
 
 ```
-aws dynamodb update-table \
-    --table-name Music \
-    --attribute-definitions AttributeName=AlbumTitle,AttributeType=S \
-    --global-secondary-index-updates \
-        "[{\"Create\":{\"IndexName\": \"AlbumTitle-index\",\"KeySchema\":[{\"AttributeName\":\"AlbumTitle\",\"KeyType\":\"HASH\"}], \
-        \"ProvisionedThroughput\": {\"ReadCapacityUnits\": 10, \"WriteCapacityUnits\": 5      },\"Projection\":{\"ProjectionType\":\"ALL\"}}}]"
+aws dynamodb update-table ^
+    --table-name Music ^
+    --attribute-definitions AttributeName=AlbumTitle,AttributeType=S ^
+    --global-secondary-index-updates ^ 
+        file://index_global_secundario_tituloAlbum.json
 ```
 
 - Criar um index global secundário baseado no nome do artista e no título do álbum
 
 ```
-aws dynamodb update-table \
-    --table-name Music \
-    --attribute-definitions\
-        AttributeName=Artist,AttributeType=S \
-        AttributeName=AlbumTitle,AttributeType=S \
-    --global-secondary-index-updates \
-        "[{\"Create\":{\"IndexName\": \"ArtistAlbumTitle-index\",\"KeySchema\":[{\"AttributeName\":\"Artist\",\"KeyType\":\"HASH\"}, {\"AttributeName\":\"AlbumTitle\",\"KeyType\":\"RANGE\"}], \
-        \"ProvisionedThroughput\": {\"ReadCapacityUnits\": 10, \"WriteCapacityUnits\": 5      },\"Projection\":{\"ProjectionType\":\"ALL\"}}}]"
+aws dynamodb update-table ^
+    --table-name Music ^
+    --attribute-definitions^
+        AttributeName=Artist,AttributeType=S ^
+        AttributeName=AlbumTitle,AttributeType=S ^
+    --global-secondary-index-updates file://index_global_secundario_artista_tituloAlbum.json
 ```
 
 - Criar um index global secundário baseado no título da música e no ano
 
 ```
-aws dynamodb update-table \
-    --table-name Music \
-    --attribute-definitions\
-        AttributeName=SongTitle,AttributeType=S \
-        AttributeName=SongYear,AttributeType=S \
-    --global-secondary-index-updates \
-        "[{\"Create\":{\"IndexName\": \"SongTitleYear-index\",\"KeySchema\":[{\"AttributeName\":\"SongTitle\",\"KeyType\":\"HASH\"}, {\"AttributeName\":\"SongYear\",\"KeyType\":\"RANGE\"}], \
-        \"ProvisionedThroughput\": {\"ReadCapacityUnits\": 10, \"WriteCapacityUnits\": 5      },\"Projection\":{\"ProjectionType\":\"ALL\"}}}]"
+aws dynamodb update-table ^
+    --table-name Music ^
+    --attribute-definitions^
+        AttributeName=SongTitle,AttributeType=S ^
+        AttributeName=SongYear,AttributeType=S ^
+    --global-secondary-index-updates file://index_global_secundario_tituloMusica_e_ano.json
 ```
 
 - Pesquisar item por artista
 
 ```
-aws dynamodb query \
-    --table-name Music \
-    --key-condition-expression "Artist = :artist" \
-    --expression-attribute-values  '{":artist":{"S":"Iron Maiden"}}'
+aws dynamodb query ^
+    --table-name Music ^
+    --key-condition-expression "Artist = :artist" ^
+    --expression-attribute-values  file://pesquisar_item_por_artista.json
 ```
 - Pesquisar item por artista e título da música
 
 ```
-aws dynamodb query \
-    --table-name Music \
-    --key-condition-expression "Artist = :artist and SongTitle = :title" \
+aws dynamodb query ^
+    --table-name Music ^
+    --key-condition-expression "Artist = :artist and SongTitle = :title" ^
     --expression-attribute-values file://keyconditions.json
 ```
 
 - Pesquisa pelo index secundário baseado no título do álbum
 
 ```
-aws dynamodb query \
-    --table-name Music \
-    --index-name AlbumTitle-index \
-    --key-condition-expression "AlbumTitle = :name" \
-    --expression-attribute-values  '{":name":{"S":"Fear of the Dark"}}'
+aws dynamodb query ^
+    --table-name Music ^
+    --index-name AlbumTitle-index ^
+    --key-condition-expression "AlbumTitle = :name" ^
+    --expression-attribute-values  file://pesquisar_index_global_secundario_tituloAlbum.json
 ```
 
 - Pesquisa pelo index secundário baseado no nome do artista e no título do álbum
 
 ```
-aws dynamodb query \
-    --table-name Music \
-    --index-name ArtistAlbumTitle-index \
-    --key-condition-expression "Artist = :v_artist and AlbumTitle = :v_title" \
-    --expression-attribute-values  '{":v_artist":{"S":"Iron Maiden"},":v_title":{"S":"Fear of the Dark"} }'
+aws dynamodb query ^
+    --table-name Music ^
+    --index-name ArtistAlbumTitle-index ^
+    --key-condition-expression "Artist = :v_artist and AlbumTitle = :v_title" ^
+    --expression-attribute-values  file://index_global_secundario_artista_tituloAlbum.json
 ```
 
 - Pesquisa pelo index secundário baseado no título da música e no ano
 
 ```
-aws dynamodb query \
-    --table-name Music \
-    --index-name SongTitleYear-index \
-    --key-condition-expression "SongTitle = :v_song and SongYear = :v_year" \
-    --expression-attribute-values  '{":v_song":{"S":"Wasting Love"},":v_year":{"S":"1992"} }'
+aws dynamodb query ^
+    --table-name Music ^
+    --index-name SongTitleYear-index ^
+    --key-condition-expression "SongTitle = :v_song and SongYear = :v_year" ^
+    --expression-attribute-values  file://pesquisa_index_secundario_tituloMusica_e_ano.json
 ```
